@@ -20,23 +20,26 @@ import 'package:universal_io/io.dart';
 import 'dns_client.dart';
 import 'dns_packet.dart';
 
+typedef void DnsPacketHandler(DnsPacket response, InternetAddress address, int port);
+
 class DnsServer {
   static const int defaultPort = 53;
 
   final RawDatagramSocket socket;
-  final DnsClient client;
+  // final DnsClient client;
 
-  DnsServer(this.socket, this.client);
+  DnsServer(this.socket/*, this.client*/);
 
   void close() {
     socket.close();
   }
 
   static Future<DnsServer> bind(DnsClient client,
-      {InternetAddress? address, int port = defaultPort}) async {
+      {InternetAddress? address, int port = defaultPort, DnsPacketHandler? receivedDnsPacket}) async {
     address ??= InternetAddress.loopbackIPv4;
     final socket = await RawDatagramSocket.bind(address, port);
-    final server = DnsServer(socket, client);
+    // final server = DnsServer(socket, client);
+    final server = DnsServer(socket);
     socket.listen((event) {
       if (event == RawSocketEvent.read) {
         while (true) {
@@ -44,29 +47,34 @@ class DnsServer {
           if (datagram == null) {
             break;
           }
-          server._receivedDatagram(datagram);
+          server._receivedDatagram(datagram, receivedDnsPacket: receivedDnsPacket);
         }
       }
     });
     return server;
   }
 
-  void _receivedDatagram(Datagram datagram) async {
+  void _receivedDatagram(Datagram datagram, {DnsPacketHandler? receivedDnsPacket}) async {
     // Decode packet
     final dnsPacket = DnsPacket();
     dnsPacket.decodeRaw(RawReader.withBytes(datagram.data));
-    receivedDnsPacket(dnsPacket, datagram.address, datagram.port);
+    receivedDnsPacket?.call(dnsPacket, datagram.address, datagram.port);
   }
 
-  void receivedDnsPacket(
-      DnsPacket packet, InternetAddress address, int port) async {
-    // Handle packet
-    final result = await client.handlePacket(packet);
+  // void receivedDnsPacket(
+  //     DnsPacket packet, InternetAddress address, int port) async {
+  //   // Handle packet
+  //   final result = await client.handlePacket(packet);
 
-    if (result != null) {
-      // Send response back
-      result.id = packet.id;
-      socket.send(result.toUint8ListViewOrCopy(), address, port);
-    }
+  //   if (result != null) {
+  //     // Send response back
+  //     result.id = packet.id;
+  //     socket.send(result.toUint8ListViewOrCopy(), address, port);
+  //   }
+  // }
+
+  void respond(DnsPacket response, InternetAddress address, int port) {
+    socket.send(response.toUint8ListViewOrCopy(), address, port);
   }
+
 }
