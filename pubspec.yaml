@@ -1,5 +1,4 @@
 name: dns
-version: 0.2.0
 author: terrier989 <terrier989@gmail.com>
 homepage: https://github.com/terrier989/dns
 description: A package for working with the DNS protocol.
@@ -13,10 +12,13 @@ executables:
 dependencies:
   args: ^2.0.0
   meta: ^1.3.0
-  ip: ^0.2.0
-  raw: ^0.2.1
+  ip:
+    git: 
+      url: git@github.com:tomialagbe/ip.git
+      ref: f77ba4193968fb24a688c9b95fcc56ec12554dfc
+  raw:
+    git: git@github.com:tomialagbe/raw.git
   universal_io: ^2.0.1
 
 dev_dependencies:
-  pedantic: ^1.11.0
   test: ^1.16.8

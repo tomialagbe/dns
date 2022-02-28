@@ -50,7 +50,7 @@ class FilteringDnsClient extends DelegatingDnsClient {
         } else {
           answer.type = DnsResourceRecord.typeIp6;
         }
-        answer.data = ip.toImmutableBytes();
+        answer.data = ip.toUint8ListViewOrCopy();
         packet.answers.add(answer);
       }
       afterOperation!(packet);

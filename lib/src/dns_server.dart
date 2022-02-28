@@ -26,9 +26,7 @@ class DnsServer {
   final RawDatagramSocket socket;
   final DnsClient client;
 
-  DnsServer(this.socket, this.client)
-      : assert(socket != null),
-        assert(client != null);
+  DnsServer(this.socket, this.client);
 
   void close() {
     socket.close();
@@ -56,7 +54,7 @@ class DnsServer {
   void _receivedDatagram(Datagram datagram) async {
     // Decode packet
     final dnsPacket = DnsPacket();
-    dnsPacket.decodeSelf(RawReader.withBytes(datagram.data));
+    dnsPacket.decodeRaw(RawReader.withBytes(datagram.data));
     receivedDnsPacket(dnsPacket, datagram.address, datagram.port);
   }
 
@@ -68,7 +66,7 @@ class DnsServer {
     if (result != null) {
       // Send response back
       result.id = packet.id;
-      socket.send(result.toImmutableBytes(), address, port);
+      socket.send(result.toUint8ListViewOrCopy(), address, port);
     }
   }
 }

@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import 'package:dns/dns.dart';
-import 'package:ip/foundation.dart';
 import 'package:raw/raw.dart';
 import 'package:raw/test_helpers.dart';
 import 'package:test/test.dart';
@@ -24,11 +23,11 @@ void main() {
       final example = DnsPacket();
 
       test("encode, decode", () {
-        final reader = RawReader.withBytes(example.toImmutableBytes());
+        final reader = RawReader.withBytes(example.toUint8ListViewOrCopy());
         final decoded = DnsPacket();
-        decoded.decodeSelf(reader);
+        decoded.decodeRaw(reader);
         expect(decoded, selfEncoderEquals(example));
-        expect(reader.availableLengthInBytes, 0);
+        expect(reader.availableLength, 0);
       });
     });
 
@@ -70,7 +69,7 @@ void main() {
 
       test("decoded properties", () {
         final decoded = DnsPacket();
-        decoded.decodeSelf(RawReader.withBytes(exampleBytes));
+        decoded.decodeRaw(RawReader.withBytes(exampleBytes));
 
         //
         // First bytes
@@ -123,29 +122,29 @@ void main() {
 
       test("encode, decode, encode", () {
         // encode
-        final writer = RawWriter.withCapacity(500);
-        example.encodeSelf(writer);
-        final encoded = writer.toUint8ListView();
+        final writer = RawWriter(capacity: 500);
+        example.encodeRaw(writer);
+        final encoded = writer.toUint8List();
         expect(encoded, byteListEquals(exampleBytes));
         final encodedReader = RawReader.withBytes(encoded);
 
         // encode -> decode
         final decoded = DnsPacket();
-        decoded.decodeSelf(encodedReader);
+        decoded.decodeRaw(encodedReader);
 
         // encode -> decode -> encode
         // (the next two lines should both encode)
-        expect(decoded.toImmutableBytes(), byteListEquals(exampleBytes));
+        expect(decoded.toUint8ListViewOrCopy(), byteListEquals(exampleBytes));
         expect(decoded, selfEncoderEquals(example));
-        expect(encodedReader.availableLengthInBytes, 0);
+        expect(encodedReader.availableLength, 0);
       });
 
       test("decode", () {
         final reader = RawReader.withBytes(exampleBytes);
         final decoded = DnsPacket();
-        decoded.decodeSelf(reader);
+        decoded.decodeRaw(reader);
         expect(decoded, selfEncoderEquals(example));
-        expect(reader.availableLengthInBytes, 0);
+        expect(reader.availableLength, 0);
       });
     });
   });

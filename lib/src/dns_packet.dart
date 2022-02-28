@@ -56,7 +56,7 @@ void _writeDnsName(RawWriter writer, List<String> parts, int? startIndex,
 
 List<String> _readDnsName(RawReader reader, int? startIndex) {
   var name = <String>[];
-  while (reader.availableLengthInBytes > 0) {
+  while (reader.availableLength > 0) {
     // Read length
     final length = reader.readUint8();
 
@@ -105,7 +105,7 @@ List<String> _readDnsName(RawReader reader, int? startIndex) {
   return name;
 }
 
-class DnsResourceRecord extends SelfCodec {
+class DnsResourceRecord extends RawValue {
   static const int responseCodeNoError = 0;
   static const int responseCodeFormatError = 1;
   static const int responseCodeServerFailure = 2;
@@ -201,7 +201,7 @@ class DnsResourceRecord extends SelfCodec {
   }
 
   @override
-  void encodeSelf(RawWriter writer,
+  void encodeRaw(RawWriter writer,
       {int? startIndex, Map<String, int>? pointers}) {
     // Write name
     // (a list of labels/pointers)
@@ -229,7 +229,7 @@ class DnsResourceRecord extends SelfCodec {
   }
 
   @override
-  void decodeSelf(RawReader reader, {int? startIndex}) {
+  void decodeRaw(RawReader reader, {int? startIndex}) {
     startIndex ??= 0;
     // Read name
     // (a list of labels/pointers)
@@ -252,7 +252,7 @@ class DnsResourceRecord extends SelfCodec {
   }
 
   @override
-  int encodeSelfCapacity() {
+  int encodeRawCapacity() {
     var n = 64;
     for (var part in nameParts) {
       n += 1 + part.length;
@@ -342,7 +342,7 @@ class DnsPacket extends Packet {
   }
 
   @override
-  void encodeSelf(RawWriter writer) {
+  void encodeRaw(RawWriter writer) {
     final startIndex = writer.length;
 
     // 4-byte span at index 0
@@ -364,7 +364,7 @@ class DnsPacket extends Packet {
     final pointers = <String, int>{};
 
     for (var item in questions) {
-      item.encodeSelf(
+      item.encodeRaw(
         writer,
         startIndex: startIndex,
         pointers: pointers,
@@ -372,7 +372,7 @@ class DnsPacket extends Packet {
     }
 
     for (var item in answers) {
-      item.encodeSelf(
+      item.encodeRaw(
         writer,
         startIndex: startIndex,
         pointers: pointers,
@@ -380,7 +380,7 @@ class DnsPacket extends Packet {
     }
 
     for (var item in authorities) {
-      item.encodeSelf(
+      item.encodeRaw(
         writer,
         startIndex: startIndex,
         pointers: pointers,
@@ -388,7 +388,7 @@ class DnsPacket extends Packet {
     }
 
     for (var item in additionalRecords) {
-      item.encodeSelf(
+      item.encodeRaw(
         writer,
         startIndex: startIndex,
         pointers: pointers,
@@ -397,7 +397,7 @@ class DnsPacket extends Packet {
   }
 
   @override
-  void decodeSelf(RawReader reader) {
+  void decodeRaw(RawReader reader) {
     // Clear existing values
     questions = <DnsQuestion>[];
     answers = <DnsResourceRecord>[];
@@ -424,49 +424,49 @@ class DnsPacket extends Packet {
 
     for (; questionsLength > 0; questionsLength--) {
       final item = DnsQuestion();
-      item.decodeSelf(reader, startIndex: startIndex);
+      item.decodeRaw(reader, startIndex: startIndex);
       questions.add(item);
     }
 
     for (; answersLength > 0; answersLength--) {
       final item = DnsResourceRecord();
-      item.decodeSelf(reader, startIndex: startIndex);
+      item.decodeRaw(reader, startIndex: startIndex);
       answers.add(item);
     }
 
     for (; nameServerResourcesLength > 0; nameServerResourcesLength--) {
       final item = DnsResourceRecord();
-      item.decodeSelf(reader, startIndex: startIndex);
+      item.decodeRaw(reader, startIndex: startIndex);
       authorities.add(item);
     }
 
     for (; additionalResourcesLength > 0; additionalResourcesLength--) {
       final item = DnsResourceRecord();
-      item.decodeSelf(reader, startIndex: startIndex);
+      item.decodeRaw(reader, startIndex: startIndex);
       additionalRecords.add(item);
     }
   }
 
   @override
-  int encodeSelfCapacity() {
+  int encodeRawCapacity() {
     var n = 64;
     for (var item in questions) {
-      n += item.encodeSelfCapacity();
+      n += item.encodeRawCapacity();
     }
     for (var item in answers) {
-      n += item.encodeSelfCapacity();
+      n += item.encodeRawCapacity();
     }
     for (var item in authorities) {
-      n += item.encodeSelfCapacity();
+      n += item.encodeRawCapacity();
     }
     for (var item in additionalRecords) {
-      n += item.encodeSelfCapacity();
+      n += item.encodeRawCapacity();
     }
     return n;
   }
 }
 
-class DnsQuestion extends SelfCodec {
+class DnsQuestion extends RawValue {
   // -----
   // Types
   // -----
@@ -536,7 +536,7 @@ class DnsQuestion extends SelfCodec {
   }
 
   @override
-  void encodeSelf(RawWriter writer,
+  void encodeRaw(RawWriter writer,
       {int? startIndex, Map<String, int>? pointers}) {
     // Write name
     _writeDnsName(
@@ -554,7 +554,7 @@ class DnsQuestion extends SelfCodec {
   }
 
   @override
-  void decodeSelf(RawReader reader, {int? startIndex}) {
+  void decodeRaw(RawReader reader, {int? startIndex}) {
     // Name
     this.nameParts = _readDnsName(reader, startIndex);
 
@@ -566,7 +566,7 @@ class DnsQuestion extends SelfCodec {
   }
 
   @override
-  int encodeSelfCapacity() {
+  int encodeRawCapacity() {
     var n = 16;
     for (var part in nameParts) {
       n += 1 + part.length;

@@ -42,12 +42,6 @@ class UdpDnsClient extends PacketBasedDnsClient {
       this.localAddress,
       this.localPort,
       this.timeout}) {
-    if (remoteAddress == null) {
-      throw ArgumentError.notNull("remoteAddress");
-    }
-    if (remotePort == null) {
-      throw ArgumentError.notNull("remotePort");
-    }
   }
 
   factory UdpDnsClient.google() {
@@ -67,7 +61,7 @@ class UdpDnsClient extends PacketBasedDnsClient {
 
     // Send query
     socket.send(
-      dnsPacket.toImmutableBytes(),
+      dnsPacket.toUint8ListViewOrCopy(),
       remoteAddress,
       remotePort,
     );
@@ -121,7 +115,7 @@ class UdpDnsClient extends PacketBasedDnsClient {
   void _receiveUdpPacket(Datagram datagram) {
     // Read DNS packet
     final dnsPacket = DnsPacket();
-    dnsPacket.decodeSelf(RawReader.withBytes(datagram.data));
+    dnsPacket.decodeRaw(RawReader.withBytes(datagram.data));
 
     // Read answers
     for (var answer in dnsPacket.answers) {

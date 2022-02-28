@@ -43,7 +43,7 @@ abstract class DnsClient {
           ? DnsResourceRecord.typeIp4
           : DnsResourceRecord.typeIp6;
       return DnsResourceRecord.withAnswer(
-          name: name, type: type, data: ipAddress.toImmutableBytes());
+          name: name, type: type, data: ipAddress.toUint8ListViewOrCopy());
     }).toList();
     return result;
   }

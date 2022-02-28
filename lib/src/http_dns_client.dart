@@ -94,10 +94,8 @@ class HttpDnsClient extends PacketBasedDnsClient {
     // Build URL
     var url = "${this.url}?name=${Uri.encodeQueryComponent(host)}";
 
-    // Add: IPv4 or IPv6?
-    if (type == null) {
-      throw ArgumentError.notNull("type");
-    } else if (type == InternetAddressType.any ||
+    // Add: IPv4 or IPv6?    
+    if (type == InternetAddressType.any ||
         type == InternetAddressType.IPv4) {
       url += "&type=A";
     } else {
@@ -255,7 +253,7 @@ class HttpDnsClient extends PacketBasedDnsClient {
             break;
 
           case "data":
-            result.data = IpAddress.parse(value).toImmutableBytes();
+            result.data = IpAddress.parse(value).toUint8ListViewOrCopy();
             break;
         }
       }

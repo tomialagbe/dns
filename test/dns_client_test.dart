@@ -74,7 +74,7 @@ void main() {
       expect(addresses, hasLength(greaterThan(0)));
       for (var address in addresses) {
         expect(address, isNotNull);
-        expect(address.toImmutableBytes(), hasLength(greaterThan(3)));
+        expect(address.toUint8ListViewOrCopy(), hasLength(greaterThan(3)));
       }
     });
   });
