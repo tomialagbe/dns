@@ -474,6 +474,7 @@ class DnsQuestion extends RawValue {
   static const int typeIp4 = 1;
   static const int typeNameServer = 2;
   static const int typeCanonicalName = 5;
+  static const int typePtr = 12;
   static const int typeMailServer = 15;
   static const int typeTxt = 16;
   static const int typeIp6 = 28;
@@ -490,6 +491,8 @@ class DnsQuestion extends RawValue {
         return "IPv6";
       case typeMailServer:
         return "MX";
+      case typePtr:
+        return "PTR";
       case typeTxt:
         return "TXT";
       default:
