@@ -27,11 +27,13 @@ class DnsServer {
 
   final RawDatagramSocket socket;
   // final DnsClient client;
+  static StreamSubscription<RawSocketEvent>? _dnsSocketSubscription;
 
   DnsServer(this.socket/*, this.client*/);
 
   void close() {
     socket.close();
+    _dnsSocketSubscription?.cancel();
   }
 
   static Future<DnsServer> bind(DnsClient client,
@@ -40,7 +42,7 @@ class DnsServer {
     final socket = await RawDatagramSocket.bind(address, port);
     // final server = DnsServer(socket, client);
     final server = DnsServer(socket);
-    socket.listen((event) {
+    _dnsSocketSubscription = socket.listen((event) {
       if (event == RawSocketEvent.read) {
         while (true) {
           final datagram = socket.receive();
