@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:raw/raw.dart';
 import 'package:universal_io/io.dart';
@@ -39,16 +40,19 @@ class DnsServer {
   static Future<DnsServer> bind(DnsClient client,
       {InternetAddress? address, int port = defaultPort, DnsPacketHandler? receivedDnsPacket}) async {
     address ??= InternetAddress.loopbackIPv4;
-    final socket = await RawDatagramSocket.bind(address, port);
-    // final server = DnsServer(socket, client);
+    print('DnsServer: Binding to ${address.address} on port ${port}');
+    final socket = await RawDatagramSocket.bind(address, port, reuseAddress: true, reusePort: true);
+    socket.joinMulticast(address);
+    
     final server = DnsServer(socket);
+    server.socket.broadcastEnabled = true;
     _dnsSocketSubscription = socket.listen((event) {
       if (event == RawSocketEvent.read) {
         while (true) {
           final datagram = socket.receive();
           if (datagram == null) {
             break;
-          }
+          }          
           server._receivedDatagram(datagram, receivedDnsPacket: receivedDnsPacket);
         }
       }
@@ -57,10 +61,17 @@ class DnsServer {
   }
 
   void _receivedDatagram(Datagram datagram, {DnsPacketHandler? receivedDnsPacket}) async {
-    // Decode packet
-    final dnsPacket = DnsPacket();
-    dnsPacket.decodeRaw(RawReader.withBytes(datagram.data));
-    receivedDnsPacket?.call(dnsPacket, datagram.address, datagram.port);
+    try {
+      // Decode packet
+      final dnsPacket = DnsPacket();
+      dnsPacket.decodeRaw(RawReader.withBytes(datagram.data));
+      // print('DnsServer: Received packet ${dnsPacket.id} from ${datagram.address.address}:${datagram.port}');
+      receivedDnsPacket?.call(dnsPacket, datagram.address, datagram.port);
+    } catch (err, st) {
+      print('DnsServer: An error occurred while decoding packet.');
+      print(err.toString());
+      print(st.toString());
+    } 
   }
 
   // void receivedDnsPacket(
@@ -77,6 +88,11 @@ class DnsServer {
 
   void respond(DnsPacket response, InternetAddress address, int port) {
     socket.send(response.toUint8ListViewOrCopy(), address, port);
+  }
+
+  void respondWithBytes(Uint8List response, InternetAddress address, int port) {
+    int sent = socket.send(response, address, port);
+    print('DnsServer: Wrote $sent / ${response.length} bytes');
   }
 
 }

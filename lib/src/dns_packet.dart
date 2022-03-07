@@ -248,7 +248,9 @@ class DnsResourceRecord extends RawValue {
     final dataLength = reader.readUint16();
 
     // N-byte data
-    data = reader.readUint8ListViewOrCopy(dataLength);
+    if (dataLength <= reader.availableLength) {
+      data = reader.readUint8ListViewOrCopy(dataLength);
+    }    
   }
 
   @override
@@ -440,11 +442,11 @@ class DnsPacket extends Packet {
       authorities.add(item);
     }
 
-    for (; additionalResourcesLength > 0; additionalResourcesLength--) {
-      final item = DnsResourceRecord();
-      item.decodeRaw(reader, startIndex: startIndex);
-      additionalRecords.add(item);
-    }
+    // for (; additionalResourcesLength > 0; additionalResourcesLength--) {
+    //   final item = DnsResourceRecord();
+    //   item.decodeRaw(reader, startIndex: startIndex);
+    //   additionalRecords.add(item);
+    // }
   }
 
   @override
